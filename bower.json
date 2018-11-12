@@ -1,5 +1,6 @@
 {
   "name": "angular-schema-form-base64-file-upload",
+  "version": "2.0.0",
   "license": "MIT",
   "author": "Textalk",
   "main": [
