@@ -57,12 +57,12 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
           var valid = true;
           var schema = scope.$eval(attrs.base64FileUpload).schema;
 
-          if (file.size > parseInt(schema.maxSize, 10)) {
-            valid = false;
-            ngModel.$setValidity('base64FileUploadSize', false);
-          } else {
-            ngModel.$setValidity('base64FileUploadSize', true);
-          }
+          // if (file.size > parseInt(schema.maxSize, 10)) {
+          //   valid = false;
+          //   ngModel.$setValidity('base64FileUploadSize', false);
+          // } else {
+          //   ngModel.$setValidity('base64FileUploadSize', true);
+          // }
 
           scope.$apply();
 
@@ -84,6 +84,7 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
           scope.file.ext = file.name.split('.').slice(-1)[0];
           scope.file.src = URL.createObjectURL(file);
           scope.hasFile = true;
+          document.getElementById("pcp-logo").src = scope.file.src;
           // just a simple conversion to human readable size.
           // For now not bothering with large sizes.
           var fileSize = file.size / 1024;
@@ -128,6 +129,7 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
           scope.file = undefined;
           scope.hasFile = false;
           ngModel.$setViewValue(undefined);
+          document.getElementById("pcp-logo").src = undefined;
         }
 
         element.find('input').bind('change', function(e) {
