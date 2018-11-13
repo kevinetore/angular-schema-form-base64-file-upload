@@ -84,7 +84,7 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
           scope.file.ext = file.name.split('.').slice(-1)[0];
           scope.file.src = URL.createObjectURL(file);
           scope.hasFile = true;
-          document.getElementById("pcp-logo").src = scope.file.src;
+          document.getElementsByClassName("questionnaire-avatar")[0].src = scope.file.src;
           // just a simple conversion to human readable size.
           // For now not bothering with large sizes.
           var fileSize = file.size / 1024;
@@ -129,7 +129,7 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
           scope.file = undefined;
           scope.hasFile = false;
           ngModel.$setViewValue(undefined);
-          document.getElementById("pcp-logo").src = undefined;
+          document.getElementsByClassName("questionnaire-avatar").src = undefined;
         }
 
         element.find('input').bind('change', function(e) {
