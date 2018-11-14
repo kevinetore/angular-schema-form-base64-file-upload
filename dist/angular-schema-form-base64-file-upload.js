@@ -54,7 +54,7 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
         scope.dropText = base64FileUploadConfig.dropText || 'Click here or drop files to upload';
 
         var validateFile = function(file) {
-          var valid = true;
+          var valid = false;
           var schema = scope.$eval(attrs.base64FileUpload).schema;
 
           // if (file.size > parseInt(schema.maxSize, 10)) {
@@ -64,8 +64,21 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
           //   ngModel.$setValidity('base64FileUploadSize', true);
           // }
 
-          scope.$apply();
+          var allowedExtension = ['jpeg', 'jpg', 'png'];
+          var fileExtension = file.name.split('.').slice(-1)[0];
 
+          for(var index in allowedExtension) {
+            if(fileExtension == allowedExtension[index]) {
+              valid = true;
+              break;
+            }
+          }
+
+          if(!valid) {
+            alert('Allowed Extensions are : *.' + allowedExtension.join(', *.'));
+          }
+
+          scope.$apply();
           return valid;
         }
 
