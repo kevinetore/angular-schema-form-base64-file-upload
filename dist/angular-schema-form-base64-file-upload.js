@@ -142,7 +142,7 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
           scope.file = undefined;
           scope.hasFile = false;
           ngModel.$setViewValue(undefined);
-          document.getElementsByClassName("questionnaire-avatar").src = undefined;
+          document.getElementsByClassName("questionnaire-avatar")[0].src = undefined;
         }
 
         element.find('input').bind('change', function(e) {
