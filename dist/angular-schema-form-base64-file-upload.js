@@ -97,7 +97,12 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
           scope.file.ext = file.name.split('.').slice(-1)[0];
           scope.file.src = URL.createObjectURL(file);
           scope.hasFile = true;
-          document.getElementsByClassName("questionnaire-avatar")[0].src = scope.file.src;
+
+          var schema = scope.$eval(attrs.base64FileUpload).schema;
+          if (schema.title == 'Profielfoto') {
+            document.getElementsByClassName("questionnaire-avatar")[0].src = scope.file.src;
+          }
+
           // just a simple conversion to human readable size.
           // For now not bothering with large sizes.
           var fileSize = file.size / 1024;
@@ -119,7 +124,7 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
             $timeout(function() {
               scope.loadingFile = false;
             }, 0);
-            
+
             var prefix = 'file:' + file.name + ';';
             ngModel.$setViewValue(prefix + e.target.result);
           };
@@ -142,7 +147,11 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
           scope.file = undefined;
           scope.hasFile = false;
           ngModel.$setViewValue(undefined);
-          document.getElementsByClassName("questionnaire-avatar")[0].src = undefined;
+
+          var schema = scope.$eval(attrs.base64FileUpload).schema;
+          if (schema.title == 'Profielfoto') {
+            document.getElementsByClassName("questionnaire-avatar")[0].src = undefined;
+          }
         }
 
         element.find('input').bind('change', function(e) {
