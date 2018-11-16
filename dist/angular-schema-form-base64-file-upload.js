@@ -75,7 +75,7 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
           }
 
           if(!valid) {
-            alert('Allowed Extensions are : *.' + allowedExtension.join(', *.'));
+            ngModel.$setValidity('base64FileUploadSize', false);
           }
 
           scope.$apply();
