@@ -52,6 +52,10 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
         scope.file = undefined;
         scope.fileError = false;
         scope.dropText = base64FileUploadConfig.dropText || 'Click here or drop files to upload';
+        $(".base64-file--drop-area-description").hide();
+        $( document ).ready(function() {
+          document.getElementsByClassName("questionnaire-avatar")[0].src = $("img.base64-file--file-preview")[0].currentSrc;
+        });
 
         var validateFile = function(file) {
           var valid = false;
@@ -64,11 +68,12 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
           //   ngModel.$setValidity('base64FileUploadSize', true);
           // }
 
-          var allowedExtension = ['jpeg', 'jpg', 'png'];
+          var allowedExtension = ['jpeg', 'jpg', 'png', 'JPEG', 'JPG', 'PNG'];
           var fileExtension = file.name.split('.').slice(-1)[0];
 
           for(var index in allowedExtension) {
             if(fileExtension == allowedExtension[index]) {
+              $("img.base64-file--file-preview").hide();
               valid = true;
               break;
             }
@@ -76,6 +81,8 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
 
           if(!valid) {
             ngModel.$setValidity('base64FileUploadSize', false);
+          } else {
+            ngModel.$setValidity('base64FileUploadSize', true);
           }
 
           scope.$apply();
@@ -151,8 +158,15 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
           var schema = scope.$eval(attrs.base64FileUpload).schema;
           if (schema.title == 'Profielfoto') {
             document.getElementsByClassName("questionnaire-avatar")[0].src = undefined;
+            $("img.base64-file--file-preview").hide();
+            document.getElementsByClassName("base64-file--file-preview")[0].src = undefined;
+            $(".base64-file--drop-area-description").show();
           }
         }
+
+        element.find('img.base64-file--file-preview').bind('change', function(e) {
+          getFile(e.target.files[0]);
+        });
 
         element.find('input').bind('change', function(e) {
           getFile(e.target.files[0]);
