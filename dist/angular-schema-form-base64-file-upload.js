@@ -53,9 +53,11 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
         scope.fileError = false;
         scope.dropText = base64FileUploadConfig.dropText || 'Click here or drop files to upload';
         $(".base64-file--drop-area-description").hide();
-        $( document ).ready(function() {
-          document.getElementsByClassName("questionnaire-avatar")[0].src = $("img.base64-file--file-preview")[0].currentSrc;
-        });
+        setTimeout(
+            function() {
+              document.getElementsByClassName("questionnaire-avatar")[0].src = $("img.base64-file--file-preview")[0].currentSrc;
+            }, 3500
+        );
 
         var validateFile = function(file) {
           var valid = false;
@@ -73,7 +75,12 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
 
           for(var index in allowedExtension) {
             if(fileExtension == allowedExtension[index]) {
-              $("img.base64-file--file-preview").hide();
+              $('.base64-file--drop-area').each(function() {
+                if ($(this).children().length == 4) { //if looking for direct descendants then do .children('div').length
+                  // $(this).find('img.base64-file--file-preview').hide();
+                }
+              });
+
               valid = true;
               break;
             }
@@ -158,9 +165,10 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
           var schema = scope.$eval(attrs.base64FileUpload).schema;
           if (schema.title == 'Profielfoto') {
             document.getElementsByClassName("questionnaire-avatar")[0].src = undefined;
-            $("img.base64-file--file-preview").hide();
+            document
+            // $("img.base64-file--file-preview").hide();
             document.getElementsByClassName("base64-file--file-preview")[0].src = undefined;
-            $(".base64-file--drop-area-description").show();
+            // $(".base64-file--drop-area-description").show();
           }
         }
 
