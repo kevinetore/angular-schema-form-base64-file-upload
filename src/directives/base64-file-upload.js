@@ -1,3 +1,43 @@
+angular.module("templates", []).run(["$templateCache", function($templateCache) {$templateCache.put("src/templates/angular-schema-form-base64-file-upload.html","<div class=\"angular-schema-form--base64-file\" ng-class=\"{\'has-error\': form.disableErrorState !== true && hasError(), \'has-success\': form.disableSuccessState !== true && hasSuccess(), \'has-feedback\': form.feedback !== false}\">\n  <label class=\"control-label\" ng-hide=\"form.notitle\">{{form.title}}</label>\n  <div base64-file-upload=\"form\" sf-field-model schema-validate=\"form\">\n    <input type=\"file\" class=\"base64-file--input\" style=\"visibility:hidden;position:absolute;top:0;left:0;\" ng-disabled=\"hasFile\"/>\n    <button type=\"button\" class=\"base64-file--drop-area\" ng-class=\"{\'file-hovering\': dropAreaHover, \'has-file\': hasFile}\">\n\n      <div class=\"base64-file--file\" ng-show=\"hasFile\">\n        <div class=\"base64-file--file-preview\"\n             ng-style=\"{\'background-image\': isImage(file) ? \'url(\' + file.src + \')\': \'\'}\">\n          <span ng-show=\"!isImage(file)\">{{file.ext}}</span>\n        </div>\n        <div class=\"base64-file--file-name\">{{file.name}}</div>\n        <div class=\"base64-file--file-size\">{{file.humanSize}}</div>\n        <div class=\"base64-file--file-remove\" ng-click=\"removeFile($event)\">&#10005</div>\n      </div>\n      <span ng-hide=\"hasFile\" class=\"base64-file--drop-area-description\">{{form.placeholder || dropText}}</span>\n    </button>\n  </div>\n\n  <span class=\"help-block\" sf-message=\"form.description\"></span>\n</div>\n");}]);
+angular.module('angularSchemaFormBase64FileUpload', [
+  'schemaForm',
+  'templates'
+]).provider('base64FileUploadConfig', function() {
+  this.setDropText = function (text) {
+    this.dropText = text;
+  };
+
+  this.$get = function () {
+    return this;
+  };
+}).config([
+  'schemaFormProvider',
+  'schemaFormDecoratorsProvider',
+  'sfBuilderProvider',
+  'sfPathProvider',
+  function(schemaFormProvider, schemaFormDecoratorsProvider, sfBuilderProvider, sfPathProvider) {
+
+    var base64file = function(name, schema, options) {
+      if (schema.type === 'string' && schema.format === 'base64') {
+        var f = schemaFormProvider.stdFormObj(name, schema, options);
+        f.key  = options.path;
+        f.type = 'base64file';
+        options.lookup[sfPathProvider.stringify(options.path)] = f;
+        return f;
+      }
+    };
+
+    schemaFormProvider.defaults.string.unshift(base64file);
+
+    schemaFormDecoratorsProvider.defineAddOn(
+        'bootstrapDecorator',           // Name of the decorator you want to add to.
+        'base64file',                      // Form type that should render this add-on
+        'src/templates/angular-schema-form-base64-file-upload.html',  // Template name in $templateCache
+        sfBuilderProvider.stdBuilders   // List of builder functions to apply.
+    );
+  }
+]);
+
 angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload', [
   'base64FileUploadConfig',
   '$timeout',
@@ -9,52 +49,40 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
       link: function(scope, element, attrs, ngModel) {
         scope.ngModel = ngModel;
         scope.dropAreaHover = false;
-        scope.file = undefined;
+
+        var imageField = element.find('img.base64-file--file-preview')[0];
+
+        $timeout(function() {
+          if(imageField.getAttribute('base64-file-fetch').startsWith("1/")) {
+            scope.hasFile = true;
+          } else {
+            scope.hasFile = false;
+          }
+        }, 0);
+
+        $timeout(function() {
+          document.getElementsByClassName("questionnaire-avatar")[0].src = $("img.base64-file--file-preview")[0].currentSrc;
+        }, 3500);
+
         scope.fileError = false;
         scope.dropText = base64FileUploadConfig.dropText || 'Click here or drop files to upload';
-        $(".base64-file--drop-area-description").hide();
-        setTimeout(
-            function() {
-              document.getElementsByClassName("questionnaire-avatar")[0].src = $("img.base64-file--file-preview")[0].currentSrc;
-            }, 3500
-        );
 
         var validateFile = function(file) {
-          var valid = false;
+          var valid = true;
           var schema = scope.$eval(attrs.base64FileUpload).schema;
 
-          // if (file.size > parseInt(schema.maxSize, 10)) {
-          //   valid = false;
-          //   ngModel.$setValidity('base64FileUploadSize', false);
-          // } else {
-          //   ngModel.$setValidity('base64FileUploadSize', true);
-          // }
-
-          var allowedExtension = ['jpeg', 'jpg', 'png', 'JPEG', 'JPG', 'PNG'];
-          var fileExtension = file.name.split('.').slice(-1)[0];
-
-          for(var index in allowedExtension) {
-            if(fileExtension == allowedExtension[index]) {
-              $('.base64-file--drop-area').each(function() {
-                if ($(this).children().length == 4) { //if looking for direct descendants then do .children('div').length
-                  // $(this).find('img.base64-file--file-preview').hide();
-                }
-              });
-
-              valid = true;
-              break;
-            }
-          }
-
-          if(!valid) {
+          if (file.size > parseInt(schema.maxSize, 10)) {
+            valid = false;
             ngModel.$setValidity('base64FileUploadSize', false);
           } else {
             ngModel.$setValidity('base64FileUploadSize', true);
           }
 
           scope.$apply();
+
           return valid;
         }
+
 
         var getFile = function(file) {
           if (!file) {
@@ -104,7 +132,22 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
           };
 
           reader.readAsDataURL(file);
+
           scope.$apply();
+
+          $timeout(function() {
+            var file_previews = document.getElementsByClassName("base64-file--file-preview");
+            var arrayLength = file_previews.length;
+            for (var preview = 0; preview < arrayLength; preview++) {
+              if (file_previews[preview]) {
+                var base64 = file_previews[preview].getAttribute('base64-file-fetch');
+                if (base64 != null && (base64.startsWith("data") || base64.startsWith("file")) == true) {
+                  file_previews[preview].remove()
+                }
+              }
+            }
+          }, 0);
+
         };
 
         scope.isImage = function(file) {
@@ -125,16 +168,9 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
           var schema = scope.$eval(attrs.base64FileUpload).schema;
           if (schema.title == 'Profielfoto') {
             document.getElementsByClassName("questionnaire-avatar")[0].src = undefined;
-            document
-            // $("img.base64-file--file-preview").hide();
             document.getElementsByClassName("base64-file--file-preview")[0].src = undefined;
-            // $(".base64-file--drop-area-description").show();
           }
         }
-
-        element.find('img.base64-file--file-preview').bind('change', function(e) {
-          getFile(e.target.files[0]);
-        });
 
         element.find('input').bind('change', function(e) {
           getFile(e.target.files[0]);
@@ -142,6 +178,7 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
 
         var dropArea = element.find('.base64-file--drop-area')[0];
         var inputField = element.find('.base64-file--input')[0];
+
 
         var clickArea = function(e) {
           e.stopPropagation();
