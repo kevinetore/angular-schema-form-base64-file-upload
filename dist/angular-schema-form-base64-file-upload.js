@@ -49,7 +49,14 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
       link: function(scope, element, attrs, ngModel) {
         scope.ngModel = ngModel;
         scope.dropAreaHover = false;
+        scope.file = undefined;
+        scope.fileError = false;
+        scope.dropText = base64FileUploadConfig.dropText || 'Click here or drop files to upload';
 
+        var dropArea = element.find('.base64-file--drop-area')[0];
+        var inputField = element.find('.base64-file--input')[0];
+        var avatar = document.getElementsByClassName("questionnaire-avatar")[0];
+        var schema = scope.$eval(attrs.base64FileUpload).schema;
         var imageField = element.find('img.base64-file--file-preview')[0];
 
         $timeout(function() {
@@ -60,18 +67,14 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
           }
         }, 0);
 
-        $timeout(function() {
-          document.getElementsByClassName("questionnaire-avatar")[0].src = $("img.base64-file--file-preview")[0].currentSrc;
-        }, 3500);
-
-        scope.fileError = false;
-        scope.dropText = base64FileUploadConfig.dropText || 'Click here or drop files to upload';
+        $(imageField).on('load', function () {
+          document.getElementsByClassName("questionnaire-avatar")[0].src = imageField.currentSrc;
+        });
 
         var validateFile = function(file) {
           var valid = true;
-          var schema = scope.$eval(attrs.base64FileUpload).schema;
 
-          if (file.size > parseInt(schema.maxSize, 10)) {
+          if (file.size > parseInt(50000, 10)) {
             valid = false;
             ngModel.$setValidity('base64FileUploadSize', false);
           } else {
@@ -100,10 +103,12 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
           scope.file.src = URL.createObjectURL(file);
           scope.hasFile = true;
 
-          var schema = scope.$eval(attrs.base64FileUpload).schema;
           if (schema.title == 'Profielfoto') {
-            document.getElementsByClassName("questionnaire-avatar")[0].src = scope.file.src;
+            var image = scope.file.src;
+            scope.addFile(image);
+            scope.addProfilePicture(image)
           }
+
 
           // just a simple conversion to human readable size.
           // For now not bothering with large sizes.
@@ -132,7 +137,7 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
           };
 
           reader.readAsDataURL(file);
-
+          // reader.result;
           scope.$apply();
 
           $timeout(function() {
@@ -148,6 +153,16 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
             }
           }, 0);
 
+
+        };
+
+        scope.addProfilePicture = function(file) {
+          avatar.src = scope.file.src;
+        };
+
+
+        scope.removeProfilePicture = function() {
+          avatar.src = undefined;
         };
 
         scope.isImage = function(file) {
@@ -156,7 +171,7 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
           }
 
           return file.type.indexOf('image') > -1
-        }
+        };
 
         scope.removeFile = function(e) {
           e.preventDefault();
@@ -165,20 +180,19 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
           scope.hasFile = false;
           ngModel.$setViewValue(undefined);
 
-          var schema = scope.$eval(attrs.base64FileUpload).schema;
           if (schema.title == 'Profielfoto') {
-            document.getElementsByClassName("questionnaire-avatar")[0].src = undefined;
-            document.getElementsByClassName("base64-file--file-preview")[0].src = undefined;
+            scope.removeProfilePicture();
           }
-        }
+        };
+
+        scope.addFile = function(file) {
+          scope.hasFile = true;
+          ngModel.$setViewValue(file);
+        };
 
         element.find('input').bind('change', function(e) {
           getFile(e.target.files[0]);
         });
-
-        var dropArea = element.find('.base64-file--drop-area')[0];
-        var inputField = element.find('.base64-file--input')[0];
-
 
         var clickArea = function(e) {
           e.stopPropagation();
