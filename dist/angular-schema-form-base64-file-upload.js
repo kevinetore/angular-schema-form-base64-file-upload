@@ -68,7 +68,9 @@ angular.module('angularSchemaFormBase64FileUpload').directive('base64FileUpload'
         }, 0);
 
         $(imageField).on('load', function () {
-          document.getElementsByClassName("questionnaire-avatar")[0].src = imageField.currentSrc;
+          if (schema.title == 'Profielfoto') {
+            document.getElementsByClassName("questionnaire-avatar")[0].src = imageField.currentSrc;
+          }
         });
 
         var validateFile = function(file) {
